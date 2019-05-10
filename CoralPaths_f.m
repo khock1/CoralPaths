@@ -30,22 +30,29 @@ adjacencynet(adjacencynet>0)=1;
 [x,y,w]=find(zerodiag(cumulativenet));
 G = digraph(x,y,w);
 
-stepstonnet=zeros(length(sites));%number of stepping stones
-MRPnet=zeros(length(sites));%most reliable paths
-maxflownet=zeros(length(sites));%maximum flow from cumulative connectvity network
+stepstonnet=zeros(length(sites));%minimum number of stepping stones
+MRPnet=zeros(length(sites));%most reliable path/cumulative dispersal probability
+maxflownet=zeros(length(sites));%maximum flow through cumulative connectivity network
 
 for i=1:length(sites)
     for j=1:length(sites)
-        %calculate number fo steppign stones usign adjaceny network with the classical shortest path algorithm
+        %calculate the minimum number of stepping stones using adjaceny network with the classical shortest path algorithm
         [stepstonnet(i,j),~,~] = graphshortestpath(sparse(adjacencynet),sites(i,1),sites(j,1));
         
-        %calculate 
+        %calculate the most reliable path/cumulative dispersal probability
+        %along the most likely dispersal path using algorithm from Hock & Mumby
+        %2015, J Roy Soc interface
         MRPnet(i,j)=MRP_calc( probabilitymat, sites(i,1), sites(j,1), logprobmat);
+        
+        %calculate maximum flow from a weighted matrix representing
+        %cumulative inter-reef flow over 4 years
         if i~=j
             maxflownet(i,j)= maxflow(G,sites(i),sites(j));
         end
     end
 end
+
+% return results
 results=struct('SteppingStones',[],'MostReliablePath',[],'MaxFlow',[]);
 results.SteppingStones=stepstonnet;
 results.MostReliablePath=MRPnet;
